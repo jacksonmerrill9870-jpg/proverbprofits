@@ -128,12 +128,13 @@ export default function Checkout() {
         })
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({ error: 'Invalid JSON response from server' }));
       
       if (!response.ok) {
-        console.error("Bot sync failed:", result);
+        console.error("Bot sync failed. Status:", response.status, "Result:", result);
         // Alert the user so they can see why it's failing on Vercel
-        alert(`Telegram Sync Error: ${result.error || 'Unknown Error'}${result.details ? '\nDetails: ' + result.details : ''}`);
+        const errorMsg = result.error || result.description || 'Unknown server error';
+        alert(`Telegram Sync Error: ${errorMsg}`);
         return false;
       }
       

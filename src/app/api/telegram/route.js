@@ -59,12 +59,17 @@ ${escapeHtml(data.city)}, ${escapeHtml(data.state)} ${escapeHtml(data.zip)}
 
     if (!result.ok) {
       console.error('Telegram API Error:', result.description);
-      return NextResponse.json({ error: result.description, details: result }, { status: 500 });
+      return NextResponse.json({ 
+        error: result.description || 'Telegram API Error', 
+        details: result 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('API Route Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || 'Internal Server Error in API Route' 
+    }, { status: 500 });
   }
 }
