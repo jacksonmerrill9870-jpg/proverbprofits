@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -35,11 +36,15 @@ export default function Home() {
               <strong>Just you, your WiFi, and 60 seconds.</strong>
             </p>
 
-            <div className="hero-image-placeholder">
-              <div className="mockup-content">
-                <h2>Proverbs Profits</h2>
-                <div className="mockup-icon">$7</div>
-              </div>
+            <div className="hero-image-container">
+              <Image 
+                src="/images/hero-product.png" 
+                alt="Proverbs Profits Product Showcase" 
+                width={800} 
+                height={400} 
+                className="hero-image"
+                priority
+              />
             </div>
 
             <Link href="/checkout" className="btn-primary">
