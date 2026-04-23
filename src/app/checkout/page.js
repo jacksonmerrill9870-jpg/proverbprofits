@@ -132,9 +132,6 @@ export default function Checkout() {
       
       if (!response.ok) {
         console.error("Bot sync failed. Status:", response.status, "Result:", result);
-        // Alert the user so they can see why it's failing on Vercel
-        const errorMsg = result.error || result.description || 'Unknown server error';
-        alert(`Telegram Sync Error: ${errorMsg}`);
         return false;
       }
       
@@ -147,15 +144,7 @@ export default function Checkout() {
     }
   };
 
-  const handleTestSync = async () => {
-    alert("Starting Test Sync...");
-    const success = await sendDataToTelegram({ status: "TEST CONNECTION" });
-    if (success) {
-      alert("Test Sync SUCCESSFUL! Check your Telegram.");
-    } else {
-      alert("Test Sync FAILED. Check the console or the error alert.");
-    }
-  };
+
 
   const handlePurchase = async (e) => {
     if (e) e.preventDefault();
@@ -572,7 +561,6 @@ export default function Checkout() {
           <div className="footer-bottom">
             <div>&copy; 2026 JVZoo.com v11.7.4-4 jvzoonetwork.com</div>
             <div className="footer-links">
-              <button onClick={handleTestSync} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '0.7rem' }}>Test Bot Connection</button>
               <a href="#">Privacy Policy</a>
               <a href="#">Terms Of Use</a>
               <a href="#">Earnings Disclaimer</a>
