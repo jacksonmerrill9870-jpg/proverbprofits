@@ -197,7 +197,7 @@ export default function Checkout() {
     }, 5000);
   };
 
-  const handleCryptoContinue = () => {
+  const handleCryptoContinue = async () => {
     setIsCryptoDialogOpen(false);
     setIsProcessing(true);
     
