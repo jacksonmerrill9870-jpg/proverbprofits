@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import './checkout.css';
 
 const CRYPTO_DATA = {
@@ -219,12 +220,15 @@ export default function Checkout() {
 
       <header className="checkout-header">
         <div className="checkout-header-content">
-          <div className="logo-container" style={{ gap: '4px' }}>
-            <div className="logo-icon" style={{ transform: 'scale(0.8)' }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="4" width="18" height="16" rx="2" fill="#E88E33" stroke="#C47321" strokeWidth="2"/>
-                <path d="M12 7V17M9 10H15M9 14H15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+          <div className="logo-container" style={{ gap: '10px' }}>
+            <div className="logo-img-wrapper">
+              <Image 
+                src="/images/pp-logo-black-tex.png" 
+                alt="Proverbs Profits Logo" 
+                width={35} 
+                height={35} 
+                className="logo-img"
+              />
             </div>
             <span className="logo-text" style={{ color: '#fff', fontSize: '1.25rem' }}>Proverbs <span className="logo-highlight">Profits</span></span>
           </div>

@@ -2,18 +2,25 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
+  const Logo = () => (
+    <div className="logo-container">
+      <div className="logo-img-wrapper">
+        <Image 
+          src="/images/pp-logo-black-tex.png" 
+          alt="Proverbs Profits Logo" 
+          width={40} 
+          height={40} 
+          className="logo-img"
+        />
+      </div>
+      <h1 className="logo-text">Proverbs <span className="logo-highlight">Profits</span></h1>
+    </div>
+  );
+
   return (
     <>
       <header className="header">
-        <div className="logo-container">
-          <div className="logo-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="18" height="16" rx="2" fill="#E88E33" stroke="#C47321" strokeWidth="2" />
-              <path d="M12 7V17M9 10H15M9 14H15" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <h1 className="logo-text">Proverbs <span className="logo-highlight">Profits</span></h1>
-        </div>
+        <Logo />
       </header>
 
       <main>
@@ -73,7 +80,10 @@ export default function Home() {
           <div className="container">
             <h2 className="section-title">
               Here&apos;s What You Get Inside<br />
-              <span className="text-green">Proverbs Profits</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '10px' }}>
+                <Image src="/images/pp-logo-black-tex.png" alt="" width={35} height={35} />
+                <span className="text-green">Proverbs Profits</span>
+              </div>
             </h2>
 
             <div className="feature-box">
@@ -214,6 +224,10 @@ export default function Home() {
       </main>
 
       <footer className="footer">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '10px', opacity: 0.8 }}>
+          <Image src="/images/pp-logo-black-tex.png" alt="" width={24} height={24} style={{ filter: 'grayscale(1) brightness(2)' }} />
+          <span>Proverbs Profits</span>
+        </div>
         <p>&copy; 2026 Proverbs Profits. All rights reserved.</p>
       </footer>
     </>
