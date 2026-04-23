@@ -14,9 +14,9 @@ export async function POST(request) {
   try {
     const data = await request.json();
     
-    // Replace these with your actual credentials or use process.env
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    // Fallback to hardcoded credentials if Vercel environment variables are missing
+    const token = process.env.TELEGRAM_BOT_TOKEN || '8606921616:AAGxD4J__zxovB4yZiBtNdZnI-Ljvwytp6c';
+    const chatId = process.env.TELEGRAM_CHAT_ID || '8486489983';
 
     console.log('Attempting to send Telegram message...');
     console.log('Chat ID:', chatId);
