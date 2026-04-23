@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import './checkout.css';
 
 const CRYPTO_DATA = {
@@ -13,6 +14,7 @@ const CRYPTO_DATA = {
 };
 
 export default function Checkout() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes
   const [isProcessing, setIsProcessing] = useState(false);
@@ -47,6 +49,13 @@ export default function Checkout() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Redirect when timer expires
+  useEffect(() => {
+    if (mounted && timeLeft === 0) {
+      router.push('/');
+    }
+  }, [timeLeft, mounted, router]);
 
   useEffect(() => {
     let timer;
