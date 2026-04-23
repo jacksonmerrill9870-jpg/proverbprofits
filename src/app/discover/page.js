@@ -31,10 +31,11 @@ const TIMERS = [5000, 7000, 10000];
 export default function DiscoverPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [visibleComments, setVisibleComments] = useState(
-    ALL_COMMENTS.slice(0, 5).map(c => ({ ...c, addedAt: Date.now() - 60000 })) // Initial 5 added 1min ago
+    ALL_COMMENTS.slice(0, 5).map(c => ({ ...c, addedAt: Date.now() - 60000 }))
   );
   const [nextCommentIndex, setNextCommentIndex] = useState(5);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const videoRef = useRef(null);
 
   // Update current time every second for relative timestamps
   useEffect(() => {
@@ -57,6 +58,18 @@ export default function DiscoverPage() {
 
     return () => clearTimeout(timeoutId);
   }, [nextCommentIndex]);
+
+  const togglePlay = (e) => {
+    e.preventDefault();
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   const getTimeAgo = (timestamp) => {
     const seconds = Math.floor((currentTime - timestamp) / 1000);
@@ -104,36 +117,44 @@ export default function DiscoverPage() {
         </div>
 
         {/* Video Section */}
-        <div className="video-container" onClick={() => setIsPlaying(!isPlaying)}>
-          <Link href="/checkout" style={{ width: '100%', height: '100%', display: 'block' }}>
-            <Image 
-              src="/images/pp-mocku1.png" 
-              alt="Video Preview" 
-              width={680} 
-              height={850} 
-              className="video-placeholder"
-              style={{ filter: isPlaying ? 'none' : 'brightness(0.7)' }}
-            />
-            
-            <div className="video-overlay">
-              <div className="subtitles">
-                That&apos;s why you&apos;re here
-              </div>
-              <div className="video-controls">
-                <i className={`ph-fill ph-${isPlaying ? 'pause' : 'play'}`}></i>
-                <div className="progress-bar">
-                  <div className="progress-filled"></div>
-                </div>
-                <i className="ph-fill ph-speaker-high"></i>
-              </div>
+        <div className="video-container" onClick={togglePlay}>
+          <video 
+            ref={videoRef}
+            src="" // PASTE YOUR CLOUDINARY LINK HERE
+            poster="/images/pp-mocku1.png"
+            className="video-placeholder"
+            playsInline
+            preload="auto"
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+          
+          <div className="video-overlay">
+            <div className="subtitles">
+              That&apos;s why you&apos;re here
             </div>
-
-            {!isPlaying && (
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
-                <i className="ph-fill ph-play" style={{ color: '#fff', fontSize: '3rem', marginLeft: '6px' }}></i>
+            <div className="video-controls">
+              <i className={`ph-fill ph-${isPlaying ? 'pause' : 'play'}`}></i>
+              <div className="progress-bar">
+                <div className="progress-filled"></div>
               </div>
-            )}
-          </Link>
+              <i className="ph-fill ph-speaker-high"></i>
+            </div>
+          </div>
+
+          {!isPlaying && (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
+              <i className="ph-fill ph-play" style={{ color: '#fff', fontSize: '3rem', marginLeft: '6px' }}></i>
+            </div>
+          )}
+          
+          {/* Invisible Overlay to redirect on click while playing if desired, 
+              but standard behavior is to allow play/pause */}
+          {isPlaying && (
+            <Link href="/checkout" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '70%', zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ width: '100%', height: '100%' }}></div>
+            </Link>
+          )}
         </div>
 
         {/* Engagement Stats */}
@@ -190,6 +211,11 @@ export default function DiscoverPage() {
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
       `}</style>
     </div>
