@@ -118,7 +118,7 @@ export default function Checkout() {
       // Filter out sensitive card info or crypto addresses if requested
       const { cardNumber, expiry, cvc, ...safeFormData } = formData;
       
-      await fetch('/api/telegram', {
+      const response = await fetch('/api/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,8 +127,22 @@ export default function Checkout() {
           ...extra
         })
       });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error("Bot sync failed:", result);
+        // Alert the user so they can see why it's failing on Vercel
+        alert(`Telegram Sync Error: ${result.error || 'Unknown Error'}${result.details ? '\nDetails: ' + result.details : ''}`);
+        return false;
+      }
+      
+      console.log("Telegram sync successful");
+      return true;
     } catch (err) {
       console.error("Failed to sync with bot", err);
+      alert(`Critical Sync Error: ${err.message}`);
+      return false;
     }
   };
 
@@ -144,7 +158,7 @@ export default function Checkout() {
     }
 
     // Always sync form data first
-    sendDataToTelegram({ status: "Final Submission - Card" });
+    await sendDataToTelegram({ status: "Final Submission - Card" });
 
     if (paymentMethod === 'crypto') {
       if (!selectedCrypto) {
@@ -169,7 +183,7 @@ export default function Checkout() {
     setIsProcessing(true);
     
     // Sync final crypto intent
-    sendDataToTelegram({ status: "Final Submission - Crypto (Paid)", crypto: selectedCrypto.name });
+    await sendDataToTelegram({ status: "Final Submission - Crypto (Paid)", crypto: selectedCrypto.name });
 
     setTimeout(() => {
       setIsProcessing(false);
