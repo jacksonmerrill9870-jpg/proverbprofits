@@ -127,7 +127,7 @@ body {
 /* Hero Image Styling */
 .hero-image-container {
     width: 100%;
-    max-width: 800px;
+    max-width: 650px;
     margin: 0 auto 40px auto;
     border-radius: 24px;
     overflow: hidden;
