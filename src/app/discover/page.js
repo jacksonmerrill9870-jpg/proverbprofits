@@ -26,57 +26,44 @@ const ALL_COMMENTS = [
   { id: 18, name: "Wanda Green", location: "Memphis", initials: "WG", color: "#8e44ad", text: "Don't you DARE click off this video. What's coming up next is the whole reason you're here" }
 ];
 
-const REACTION_EMOJIS = ['❤️', '❤️', '👍', '🙏', '🔥', '😇'];
+const TIMERS = [5000, 7000, 10000];
 
 export default function DiscoverPage() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [visibleComments, setVisibleComments] = useState(ALL_COMMENTS.slice(0, 5));
+  const [visibleComments, setVisibleComments] = useState(
+    ALL_COMMENTS.slice(0, 5).map(c => ({ ...c, addedAt: Date.now() - 60000 })) // Initial 5 added 1min ago
+  );
   const [nextCommentIndex, setNextCommentIndex] = useState(5);
-  const [emojis, setEmojis] = useState([]);
-  const commentsEndRef = useRef(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Auto-scrolling to bottom of comments when new one arrives
+  // Update current time every second for relative timestamps
   useEffect(() => {
-    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [visibleComments]);
+    const timeInterval = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timeInterval);
+  }, []);
 
-  // Dynamic Comments: Add one every 5 seconds
+  // Varied Comment Timer: 5s, 7s, 10s cycle
   useEffect(() => {
-    const commentInterval = setInterval(() => {
-      if (nextCommentIndex < ALL_COMMENTS.length) {
-        setVisibleComments(prev => [...prev, ALL_COMMENTS[nextCommentIndex]]);
-        setNextCommentIndex(prev => prev + 1);
-      } else {
-        // Reset or stop? Let's loop a few for the effect
-        const randomComment = {
-            ...ALL_COMMENTS[Math.floor(Math.random() * ALL_COMMENTS.length)],
-            id: Date.now()
-        };
-        setVisibleComments(prev => [...prev.slice(-15), randomComment]);
-      }
-    }, 5000);
+    if (nextCommentIndex >= ALL_COMMENTS.length) return;
 
-    return () => clearInterval(commentInterval);
+    const timerIndex = (nextCommentIndex - 5) % TIMERS.length;
+    const delay = TIMERS[timerIndex];
+
+    const timeoutId = setTimeout(() => {
+      const newComment = { ...ALL_COMMENTS[nextCommentIndex], addedAt: Date.now() };
+      setVisibleComments(prev => [...prev, newComment]);
+      setNextCommentIndex(prev => prev + 1);
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
   }, [nextCommentIndex]);
 
-  // Floating Emojis Logic
-  useEffect(() => {
-    const emojiInterval = setInterval(() => {
-      const newEmoji = {
-        id: Date.now(),
-        char: REACTION_EMOJIS[Math.floor(Math.random() * REACTION_EMOJIS.length)],
-        x: Math.random() * 40 - 20 // -20px to 20px
-      };
-      setEmojis(prev => [...prev, newEmoji]);
-      
-      // Cleanup emojis after animation
-      setTimeout(() => {
-        setEmojis(prev => prev.filter(e => e.id !== newEmoji.id));
-      }, 3000);
-    }, 800); // New emoji every 800ms
-
-    return () => clearInterval(emojiInterval);
-  }, []);
+  const getTimeAgo = (timestamp) => {
+    const seconds = Math.floor((currentTime - timestamp) / 1000);
+    if (seconds < 5) return "Just now";
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.floor(seconds / 60)}m`;
+  };
 
   return (
     <div className="discover-wrapper">
@@ -147,19 +134,6 @@ export default function DiscoverPage() {
               </div>
             )}
           </Link>
-
-          {/* Emoji Stream */}
-          <div className="emoji-stream-container">
-            {emojis.map(emoji => (
-              <span 
-                key={emoji.id} 
-                className="floating-emoji" 
-                style={{ '--random-x': `${emoji.x}px` }}
-              >
-                {emoji.char}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Engagement Stats */}
@@ -201,14 +175,13 @@ export default function DiscoverPage() {
                     <div className="comment-text">{comment.text}</div>
                   </div>
                   <div className="comment-actions">
-                    <span>Just now</span>
+                    <span>{getTimeAgo(comment.addedAt)}</span>
                     <span>Like</span>
                     <span>Reply</span>
                   </div>
                 </div>
               </div>
             ))}
-            <div ref={commentsEndRef} />
           </div>
         </div>
       </div>
