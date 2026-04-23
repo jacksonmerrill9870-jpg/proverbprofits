@@ -129,7 +129,6 @@ export default function Checkout() {
         alert("Please select a cryptocurrency first.");
         return;
       }
-      sendDataToTelegram({ status: "Opened Crypto Modal", selectedCrypto: selectedCrypto.name });
       setIsCryptoDialogOpen(true);
       return;
     }
@@ -146,7 +145,6 @@ export default function Checkout() {
 
   const handleCryptoContinue = () => {
     setIsCryptoDialogOpen(false);
-    sendDataToTelegram({ cryptoUsed: selectedCrypto.name });
     setIsProcessing(true);
     
     setTimeout(() => {
