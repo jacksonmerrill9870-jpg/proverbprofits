@@ -38,7 +38,7 @@ export default function Home() {
 
             <div className="hero-image-container">
               <Image 
-                src="/images/hero-product.png" 
+                src="/images/pp-mocku1.png" 
                 alt="Proverbs Profits Product Showcase" 
                 width={800} 
                 height={400} 
