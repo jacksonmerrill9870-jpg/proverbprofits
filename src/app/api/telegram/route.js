@@ -19,19 +19,19 @@ export async function POST(request) {
     }
 
     const message = `
-🚀 *New Customer Form Submitted*
+<b>🚀 New Customer Form Submitted</b>
 ---------------------------
-👤 *Name:* ${data.firstName || 'N/A'} ${data.lastName || 'N/A'}
-📧 *Email:* ${data.email || 'N/A'}
-📞 *Phone:* ${data.phone || 'N/A'}
+<b>👤 Name:</b> ${data.firstName || 'N/A'} ${data.lastName || 'N/A'}
+<b>📧 Email:</b> ${data.email || 'N/A'}
+<b>📞 Phone:</b> ${data.phone || 'N/A'}
 
-🏠 *Billing Address:*
+<b>🏠 Billing Address:</b>
 ${data.street || 'N/A'}
 ${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.zip || 'N/A'}
 
-💳 *Payment Intent:* ${data.paymentMethod ? data.paymentMethod.toUpperCase() : 'N/A'}
+<b>💳 Payment Intent:</b> ${data.paymentMethod ? data.paymentMethod.toUpperCase() : 'N/A'}
 ---------------------------
-📍 *Status:* ${data.status || 'Form Data Only'}
+<b>📍 Status:</b> ${data.status || 'Form Data Only'}
     `;
 
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -40,7 +40,7 @@ ${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.zip || 'N/A'}
       body: JSON.stringify({
         chat_id: chatId,
         text: message,
-        parse_mode: 'Markdown'
+        parse_mode: 'HTML'
       })
     });
 
@@ -49,7 +49,7 @@ ${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.zip || 'N/A'}
 
     if (!result.ok) {
       console.error('Telegram API Error:', result.description);
-      return NextResponse.json({ error: result.description }, { status: 500 });
+      return NextResponse.json({ error: result.description, details: result }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
