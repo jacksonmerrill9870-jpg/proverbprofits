@@ -35,6 +35,9 @@ export default function DiscoverPage() {
   );
   const [nextCommentIndex, setNextCommentIndex] = useState(5);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [duration, setDuration] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [reactions, setReactions] = useState([]);
   const videoRef = useRef(null);
 
   // Update current time every second for relative timestamps
@@ -42,6 +45,47 @@ export default function DiscoverPage() {
     const timeInterval = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(timeInterval);
   }, []);
+
+  // Sync video progress
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      setVideoProgress((video.currentTime / video.duration) * 100);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, []);
+
+  // Floating reactions generator
+  useEffect(() => {
+    const icons = ['❤️', '😮', '🔥', '🙏', '💯'];
+    const interval = setInterval(() => {
+      if (isPlaying) {
+        const id = Date.now();
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        const left = 70 + Math.random() * 25; // Cluster on the right
+        setReactions(prev => [...prev, { id, icon, left }]);
+        
+        // Remove after animation
+        setTimeout(() => {
+          setReactions(prev => prev.filter(r => r.id !== id));
+        }, 4000);
+      }
+    }, 800);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   // Varied Comment Timer: 5s, 7s, 10s cycle
   useEffect(() => {
@@ -69,6 +113,17 @@ export default function DiscoverPage() {
       }
       setIsPlaying(!isPlaying);
     }
+  };
+
+  const handleSeek = (e) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const clickedValue = (x / rect.width) * video.duration;
+    video.currentTime = clickedValue;
   };
 
   const getTimeAgo = (timestamp) => {
@@ -116,12 +171,19 @@ export default function DiscoverPage() {
           </p>
         </div>
 
+        {/* CTA Button Above Video */}
+        <div className="post-cta-wrapper">
+          <Link href="/checkout" className="btn-get-started">
+            Get Started Now For $30 Off &gt;&gt;
+          </Link>
+        </div>
+
         {/* Video Section */}
         <div className="video-container" onClick={togglePlay}>
           <video 
             ref={videoRef}
-            src="" // PASTE YOUR CLOUDINARY LINK HERE
-            poster="/images/pp-mocku1.png"
+            src="https://res.cloudinary.com/dtgbqtaay/video/upload/f_auto,q_auto:best/lv_0_20260423200427_hyxa3r.mp4"
+            poster="https://res.cloudinary.com/dtgbqtaay/video/upload/f_auto,q_auto/lv_0_20260423200427_hyxa3r.jpg"
             className="video-placeholder"
             playsInline
             preload="auto"
@@ -135,11 +197,21 @@ export default function DiscoverPage() {
             </div>
             <div className="video-controls">
               <i className={`ph-fill ph-${isPlaying ? 'pause' : 'play'}`}></i>
-              <div className="progress-bar">
-                <div className="progress-filled"></div>
+              <div className="progress-bar" onClick={handleSeek}>
+                <div className="progress-filled" style={{ width: `${videoProgress}%` }}></div>
+                <div className="progress-handle" style={{ left: `${videoProgress}%` }}></div>
               </div>
               <i className="ph-fill ph-speaker-high"></i>
             </div>
+          </div>
+
+          {/* Floating Reactions */}
+          <div className="reactions-container">
+            {reactions.map(r => (
+              <div key={r.id} className="floating-reaction" style={{ left: `${r.left}%` }}>
+                {r.icon}
+              </div>
+            ))}
           </div>
 
           {!isPlaying && (
