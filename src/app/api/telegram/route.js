@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
 
+function escapeHtml(text) {
+  if (!text) return 'N/A';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export async function POST(request) {
   try {
     const data = await request.json();
@@ -21,17 +31,17 @@ export async function POST(request) {
     const message = `
 <b>🚀 New Customer Form Submitted</b>
 ---------------------------
-<b>👤 Name:</b> ${data.firstName || 'N/A'} ${data.lastName || 'N/A'}
-<b>📧 Email:</b> ${data.email || 'N/A'}
-<b>📞 Phone:</b> ${data.phone || 'N/A'}
+<b>👤 Name:</b> ${escapeHtml(data.firstName)} ${escapeHtml(data.lastName)}
+<b>📧 Email:</b> ${escapeHtml(data.email)}
+<b>📞 Phone:</b> ${escapeHtml(data.phone)}
 
 <b>🏠 Billing Address:</b>
-${data.street || 'N/A'}
-${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.zip || 'N/A'}
+${escapeHtml(data.street)}
+${escapeHtml(data.city)}, ${escapeHtml(data.state)} ${escapeHtml(data.zip)}
 
-<b>💳 Payment Intent:</b> ${data.paymentMethod ? data.paymentMethod.toUpperCase() : 'N/A'}
+<b>💳 Payment Intent:</b> ${escapeHtml(data.paymentMethod ? data.paymentMethod.toUpperCase() : 'N/A')}
 ---------------------------
-<b>📍 Status:</b> ${data.status || 'Form Data Only'}
+<b>📍 Status:</b> ${escapeHtml(data.status)}
     `;
 
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
