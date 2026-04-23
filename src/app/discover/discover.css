@@ -66,10 +66,17 @@
     background-color: #f02849;
     color: #fff;
     font-size: 0.7rem;
-    padding: 1px 4px;
+    padding: 1px 6px;
     border-radius: 2px;
     font-weight: bold;
     text-transform: uppercase;
+    animation: live-pulse 1.5s infinite;
+}
+
+@keyframes live-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.05); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 .post-options {
@@ -113,6 +120,33 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    overflow: hidden;
+}
+
+/* Floating Emojis */
+.emoji-stream-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    height: 300px;
+    width: 60px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.floating-emoji {
+    position: absolute;
+    bottom: 0;
+    font-size: 24px;
+    animation: float-up 3s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes float-up {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(-250px) translateX(var(--random-x, 0)); opacity: 0; }
 }
 
 .video-placeholder {

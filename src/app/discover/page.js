@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import './discover.css';
 
-const COMMENTS = [
+const ALL_COMMENTS = [
   { id: 1, name: "Monique Lewis", location: "Macon", initials: "ML", color: "#f39c12", text: "Macon here! My whole church is about to hear about this on Sunday" },
   { id: 2, name: "Cedric Moore", location: "Memphis", initials: "CM", color: "#9b59b6", text: "I've shared this with 11 people today. ELEVEN. That's how serious I am about this" },
   { id: 3, name: "Tyrone Clark", location: "Greenville", initials: "TC", color: "#e74c3c", text: "I prayed all week and nothing. Then this video. Then what he shows. Then I ugly cried in my kitchen" },
@@ -26,8 +26,57 @@ const COMMENTS = [
   { id: 18, name: "Wanda Green", location: "Memphis", initials: "WG", color: "#8e44ad", text: "Don't you DARE click off this video. What's coming up next is the whole reason you're here" }
 ];
 
+const REACTION_EMOJIS = ['❤️', '❤️', '👍', '🙏', '🔥', '😇'];
+
 export default function DiscoverPage() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [visibleComments, setVisibleComments] = useState(ALL_COMMENTS.slice(0, 5));
+  const [nextCommentIndex, setNextCommentIndex] = useState(5);
+  const [emojis, setEmojis] = useState([]);
+  const commentsEndRef = useRef(null);
+
+  // Auto-scrolling to bottom of comments when new one arrives
+  useEffect(() => {
+    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [visibleComments]);
+
+  // Dynamic Comments: Add one every 5 seconds
+  useEffect(() => {
+    const commentInterval = setInterval(() => {
+      if (nextCommentIndex < ALL_COMMENTS.length) {
+        setVisibleComments(prev => [...prev, ALL_COMMENTS[nextCommentIndex]]);
+        setNextCommentIndex(prev => prev + 1);
+      } else {
+        // Reset or stop? Let's loop a few for the effect
+        const randomComment = {
+            ...ALL_COMMENTS[Math.floor(Math.random() * ALL_COMMENTS.length)],
+            id: Date.now()
+        };
+        setVisibleComments(prev => [...prev.slice(-15), randomComment]);
+      }
+    }, 5000);
+
+    return () => clearInterval(commentInterval);
+  }, [nextCommentIndex]);
+
+  // Floating Emojis Logic
+  useEffect(() => {
+    const emojiInterval = setInterval(() => {
+      const newEmoji = {
+        id: Date.now(),
+        char: REACTION_EMOJIS[Math.floor(Math.random() * REACTION_EMOJIS.length)],
+        x: Math.random() * 40 - 20 // -20px to 20px
+      };
+      setEmojis(prev => [...prev, newEmoji]);
+      
+      // Cleanup emojis after animation
+      setTimeout(() => {
+        setEmojis(prev => prev.filter(e => e.id !== newEmoji.id));
+      }, 3000);
+    }, 800); // New emoji every 800ms
+
+    return () => clearInterval(emojiInterval);
+  }, []);
 
   return (
     <div className="discover-wrapper">
@@ -68,8 +117,8 @@ export default function DiscoverPage() {
         </div>
 
         {/* Video Section */}
-        <Link href="/checkout" style={{ textDecoration: 'none' }}>
-          <div className="video-container" onClick={() => setIsPlaying(!isPlaying)}>
+        <div className="video-container" onClick={() => setIsPlaying(!isPlaying)}>
+          <Link href="/checkout" style={{ width: '100%', height: '100%', display: 'block' }}>
             <Image 
               src="/images/pp-mocku1.png" 
               alt="Video Preview" 
@@ -93,12 +142,25 @@ export default function DiscoverPage() {
             </div>
 
             {!isPlaying && (
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyCenter: 'center' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
                 <i className="ph-fill ph-play" style={{ color: '#fff', fontSize: '3rem', marginLeft: '6px' }}></i>
               </div>
             )}
+          </Link>
+
+          {/* Emoji Stream */}
+          <div className="emoji-stream-container">
+            {emojis.map(emoji => (
+              <span 
+                key={emoji.id} 
+                className="floating-emoji" 
+                style={{ '--random-x': `${emoji.x}px` }}
+              >
+                {emoji.char}
+              </span>
+            ))}
           </div>
-        </Link>
+        </div>
 
         {/* Engagement Stats */}
         <div className="engagement-stats">
@@ -126,9 +188,9 @@ export default function DiscoverPage() {
             Most relevant <i className="ph ph-caret-down"></i>
           </div>
           
-          <div className="comment-list">
-            {COMMENTS.map(comment => (
-              <div key={comment.id} className="comment-item">
+          <div className="comment-list" style={{ maxHeight: '600px', overflowY: 'auto', paddingRight: '5px' }}>
+            {visibleComments.map((comment, index) => (
+              <div key={comment.id || index} className="comment-item" style={{ animation: 'fade-in 0.5s ease-out' }}>
                 <div className="comment-avatar" style={{ backgroundColor: comment.color }}>
                   {comment.initials}
                 </div>
@@ -146,9 +208,17 @@ export default function DiscoverPage() {
                 </div>
               </div>
             ))}
+            <div ref={commentsEndRef} />
           </div>
         </div>
       </div>
+      
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
