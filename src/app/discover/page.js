@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import './discover.css';
+
 
 const ALL_COMMENTS = [
   { id: 1, name: "Monique Lewis", location: "Macon", initials: "ML", color: "#f39c12", text: "Macon here! My whole church is about to hear about this on Sunday" },
@@ -29,7 +31,9 @@ const ALL_COMMENTS = [
 const TIMERS = [5000, 7000, 10000];
 
 export default function DiscoverPage() {
+  const router = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
+
   const [visibleComments, setVisibleComments] = useState(
     ALL_COMMENTS.slice(0, 5).map(c => ({ ...c, addedAt: Date.now() - 60000 }))
   );
@@ -96,8 +100,9 @@ export default function DiscoverPage() {
 
     const timeoutId = setTimeout(() => {
       const newComment = { ...ALL_COMMENTS[nextCommentIndex], addedAt: Date.now() };
-      setVisibleComments(prev => [...prev, newComment]);
+      setVisibleComments(prev => [newComment, ...prev]);
       setNextCommentIndex(prev => prev + 1);
+
     }, delay);
 
     return () => clearTimeout(timeoutId);
@@ -186,10 +191,14 @@ export default function DiscoverPage() {
             poster="https://res.cloudinary.com/dtgbqtaay/video/upload/f_auto,q_auto/lv_0_20260423200427_hyxa3r.jpg"
             className="video-placeholder"
             playsInline
+            autoPlay
+            muted
             preload="auto"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onEnded={() => router.push('/checkout')}
           />
+
           
           <div className="video-overlay">
             <div className="subtitles">
