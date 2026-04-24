@@ -191,13 +191,12 @@ export default function DiscoverPage() {
             poster="https://res.cloudinary.com/dtgbqtaay/video/upload/f_auto,q_auto/lv_0_20260423200427_hyxa3r.jpg"
             className="video-placeholder"
             playsInline
-            autoPlay
-            muted
             preload="auto"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={() => router.push('/checkout')}
           />
+
 
           
           <div className="video-overlay">
