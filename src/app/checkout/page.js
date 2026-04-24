@@ -6,12 +6,27 @@ import { useRouter } from 'next/navigation';
 import './checkout.css';
 
 const CRYPTO_DATA = {
-  btc: { name: 'Bitcoin (BTC)', network: 'Bitcoin', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
-  eth: { name: 'Ethereum (ETH)', network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
-  usdt: { name: 'Tether (USDT)', network: 'Tron (TRC20)', address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' },
-  usdc: { name: 'USD Coin (USDC)', network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
-  sol: { name: 'Solana (SOL)', network: 'Solana', address: '7uv8vYpSqBvS37qF78vSqBvS37qF78vSqBvS37qF78vS' }
+  btc: { name: 'Bitcoin (BTC)', network: 'Bitcoin', address: 'bc1q2fapcz92j5e92yzzg8pyaq00xt37z98ntmzej7' },
+  eth: { name: 'Ethereum (ETH)', network: 'Ethereum (ERC20)', address: '0x480C73ACd85A744fb1D7660432b34D9AE11E239e' },
+  usdt: { name: 'Tether (USDT)', network: 'Tron (TRC20)', address: 'TKfdND1Kw4GPhszxi1DtSky7vqGLMHmvMH' },
+  usdc: { name: 'USD Coin (USDC)', network: 'Ethereum (ERC20)', address: '0x480C73ACd85A744fb1D7660432b34D9AE11E239e' },
+  sol: { name: 'Solana (SOL)', network: 'Solana', address: '3myp9tcctMigNtitTfQNLddNZEzByRvDbg4edBY3CBgw' }
 };
+
+
+const COUNTRIES = [
+  { name: 'United States', code: '+1' },
+  { name: 'United Kingdom', code: '+44' },
+  { name: 'Canada', code: '+1' },
+  { name: 'Australia', code: '+61' },
+  { name: 'Nigeria', code: '+234' },
+  { name: 'Germany', code: '+49' },
+  { name: 'France', code: '+33' },
+  { name: 'India', code: '+91' },
+  { name: 'Brazil', code: '+55' },
+  { name: 'South Africa', code: '+27' }
+];
+
 
 export default function Checkout() {
   const router = useRouter();
@@ -27,6 +42,8 @@ export default function Checkout() {
     lastName: '',
     email: '',
     phone: '',
+    country: 'United States',
+    countryCode: '+1',
     street: '',
     city: '',
     state: '',
@@ -36,11 +53,26 @@ export default function Checkout() {
     cvc: ''
   });
   const [cardType, setCardType] = useState('unknown');
+  const [isUpsellChecked, setIsUpsellChecked] = useState(false);
+  const basePrice = 67.00;
+  const upsellPrice = 19.99;
+  const totalPrice = isUpsellChecked ? (basePrice + upsellPrice).toFixed(2) : basePrice.toFixed(2);
+
   
   // Crypto payment states
   const [selectedCrypto, setSelectedCrypto] = useState(null);
   const [isCryptoDialogOpen, setIsCryptoDialogOpen] = useState(false);
   const [cryptoTimeLeft, setCryptoTimeLeft] = useState(7 * 60); // 7 minutes
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text) => {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
 
   useEffect(() => {
     setMounted(true);
@@ -99,10 +131,18 @@ export default function Checkout() {
       const cleanValue = value.replace(/\D/g, '');
       setFormData(prev => ({ ...prev, [name]: cleanValue }));
       setCardType(detectCardType(cleanValue));
+    } else if (name === 'country') {
+      const selectedCountry = COUNTRIES.find(c => c.name === value);
+      setFormData(prev => ({ 
+        ...prev, 
+        country: value, 
+        countryCode: selectedCountry ? selectedCountry.code : prev.countryCode 
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
+
 
   const handleCryptoSelect = (e) => {
     const val = e.target.value;
@@ -184,7 +224,10 @@ export default function Checkout() {
     setTimeout(() => {
       setIsProcessing(false);
       setShowError(true);
-    }, 5000);
+    }, 8 * 60 * 1000); // 8 minutes
+
+
+
   };
 
   const handleCryptoContinue = async () => {
@@ -197,7 +240,10 @@ export default function Checkout() {
     setTimeout(() => {
       setIsProcessing(false);
       setShowError(true);
-    }, 5000);
+    }, 8 * 60 * 1000); // 8 minutes
+
+
+
   };
 
   if (!mounted) return null;
@@ -229,7 +275,8 @@ export default function Checkout() {
             <div style={{ backgroundColor: '#fdf2f2', border: '1px solid #feb2b2', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <span style={{ fontWeight: 'bold', color: '#c53030' }}>Fixed Amount:</span>
-                <span style={{ fontWeight: '900', color: '#c53030', fontSize: '1.2rem' }}>$67.00 USD</span>
+                <span style={{ fontWeight: '900', color: '#c53030', fontSize: '1.2rem' }}>${totalPrice} USD</span>
+
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontWeight: 'bold', color: '#2d3748' }}>Network:</span>
@@ -238,11 +285,36 @@ export default function Checkout() {
             </div>
 
             <div style={{ marginBottom: '25px' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', textAlign: 'left' }}>RECEIVER WALLET ADDRESS</div>
-              <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.95rem', border: '1px dashed #f7931a', color: '#333', textAlign: 'center', fontWeight: 'bold' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '8px', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>RECEIVER WALLET ADDRESS</span>
+                {copied && <span style={{ color: '#178331', fontSize: '0.75rem', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '2px 8px', borderRadius: '4px' }}>Copied!</span>}
+              </div>
+              <div 
+                onClick={() => handleCopy(selectedCrypto.address)}
+                title="Click to copy"
+                style={{ 
+                  backgroundColor: '#f9f9f9', 
+                  padding: '15px 40px 15px 15px', 
+                  borderRadius: '8px', 
+                  wordBreak: 'break-all', 
+                  fontFamily: 'monospace', 
+                  fontSize: '0.95rem', 
+                  border: '1px dashed #f7931a', 
+                  color: '#333', 
+                  textAlign: 'center', 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fff5eb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+              >
                 {selectedCrypto.address}
+                <i className="ph ph-copy" style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem', color: '#f7931a' }}></i>
               </div>
             </div>
+
             
             <div style={{ background: '#fff5eb', padding: '15px', borderRadius: '8px', marginBottom: '25px' }}>
               <div style={{ fontSize: '0.9rem', color: '#c05621', marginBottom: '5px', fontWeight: 'bold' }}>PAYMENT EXPIRES IN</div>
@@ -332,10 +404,21 @@ export default function Checkout() {
             </div>
             
             <div className="form-row">
+              <div className="form-group" style={{ flex: '2' }}>
+                <select name="country" className="form-input" value={formData.country} onChange={handleInputChange} required>
+                  {COUNTRIES.map(c => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="form-group" style={{ flex: '1' }}>
+                <input type="text" name="countryCode" className="form-input" placeholder="Code" value={formData.countryCode} readOnly />
+              </div>
+              <div className="form-group" style={{ flex: '3' }}>
                 <input type="tel" name="phone" className="form-input" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} required />
               </div>
             </div>
+
 
             <div className="checkout-form-subtitle" style={{marginTop: '25px'}}>BILLING DETAILS</div>
             <div className="form-row">
@@ -471,14 +554,16 @@ export default function Checkout() {
         <div className="checkout-right" style={{ opacity: isProcessing ? 0.5 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}>
           <h2 className="summary-title">Cart Summary</h2>
           
-          <div className="summary-img">
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, rgba(255,200,100,0.2), rgba(0,0,0,0.8))' }}></div>
-            <i className="ph-fill ph-sparkle" style={{ fontSize: '4rem', color: '#ffb347', zIndex: 1 }}></i>
-            <div className="summary-img-text">
-              <div style={{ fontSize: '0.9rem', marginBottom: '4px' }}>I AM YOUR LORD AND SAVIOR,</div>
-              <div style={{ fontSize: '1rem' }}>DO NOT IGNORE THIS BLESSING</div>
-            </div>
+          <div className="summary-img" style={{ height: 'auto', minHeight: 'auto', border: 'none', backgroundColor: 'transparent' }}>
+            <Image 
+              src="/images/40901_17739629.jpg" 
+              alt="Proverbs Profits" 
+              width={400} 
+              height={400} 
+              style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+            />
           </div>
+
           
           <h3 className="summary-product-name">Proverbs Profits</h3>
           
@@ -489,17 +574,19 @@ export default function Checkout() {
           
           <div className="summary-total">
             <span>Order Total:<br/><span style={{fontSize: '0.8rem', fontWeight: 'normal', color: '#666'}}>+ any applicable taxes</span></span>
-            <span>$67.00</span>
+            <span>${totalPrice}</span>
           </div>
+
           
           <div className="summary-currency">This is a single payment made in U.S. Dollars</div>
           
-          <div className="upsell-box">
+          <div className="upsell-box" style={{ border: isUpsellChecked ? '2px dashed #178331' : '1px solid #ddd', backgroundColor: isUpsellChecked ? '#f0fdf4' : '#fff' }}>
             <label className="upsell-header">
-              <input type="checkbox" defaultChecked={false} />
+              <input type="checkbox" checked={isUpsellChecked} onChange={(e) => setIsUpsellChecked(e.target.checked)} />
               <span>Yes, I want to add <strong>Yes, I want personal guidance from Pastor Chuck</strong></span>
               <span className="upsell-price">$19.99</span>
             </label>
+
             <div className="upsell-desc">
               Direct assistance from Pastor Chuck which normally costs thousands. If you struggle with technology this is highly recommended. I will give you my personal email you can mail me anytime.
             </div>

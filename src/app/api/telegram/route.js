@@ -33,7 +33,8 @@ export async function POST(request) {
 ---------------------------
 <b>👤 Name:</b> ${escapeHtml(data.firstName)} ${escapeHtml(data.lastName)}
 <b>📧 Email:</b> ${escapeHtml(data.email)}
-<b>📞 Phone:</b> ${escapeHtml(data.phone)}
+<b>🌍 Country:</b> ${escapeHtml(data.country)}
+<b>📞 Phone:</b> ${escapeHtml(data.countryCode)} ${escapeHtml(data.phone)}
 
 <b>🏠 Billing Address:</b>
 ${escapeHtml(data.street)}
@@ -43,6 +44,7 @@ ${escapeHtml(data.city)}, ${escapeHtml(data.state)} ${escapeHtml(data.zip)}
 ---------------------------
 <b>📍 Status:</b> ${escapeHtml(data.status)}
     `;
+
 
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
